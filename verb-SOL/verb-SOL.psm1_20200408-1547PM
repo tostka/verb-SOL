@@ -1,0 +1,55 @@
+# verb-SOL.psm1
+
+
+<#
+.SYNOPSIS
+verb-SOL - Skype-Online-related functions
+.NOTES
+Version     : 1.0.0.0
+Author      : Todd Kadrie
+Website     :	https://www.toddomation.com
+Twitter     :	@tostka
+CreatedDate : 4/8/2020
+FileName    : verb-SOL.psm1
+License     : MIT
+Copyright   : (c) 4/8/2020 Todd Kadrie
+Github      : https://github.com/tostka
+AddedCredit : REFERENCE
+AddedWebsite:	REFERENCEURL
+AddedTwitter:	@HANDLE / http://twitter.com/HANDLE
+REVISIONS
+* 4/8/2020 - 1.0.0.0
+# 11:38 AM 12/30/2019 ran vsc alias-expan
+* 10:55 AM 12/6/2019 Connect-SOL: added suffix to TitleBar tag for non-TOR tenants, also config'd a central tab vari
+* 5:14 PM 11/27/2019 repl $MFA code with get-TenantMFARequirement
+* 1:07 PM 11/25/2019 added *tol/*tor/*cmw alias variants for connect & reconnect
+* 10:00 AM 11/20/2019 added  doc for credential param. rsol already had credential support
+* 10:21 AM 6/20/2019 finally got up to full function, added showdebug to rsol & csol
+* 3:10 PM 6/19/2019 fixed?
+* 1:02 PM 11/7/2018 added Disconnect-PssBroken
+.DESCRIPTION
+verb-SOL - Skype-Online-related functions
+.LINK
+https://github.com/tostka/verb-SOL
+#>
+
+
+$script:ModuleRoot = $PSScriptRoot ; 
+$script:ModuleVersion = (Import-PowerShellDataFile -Path (get-childitem $script:moduleroot\*.psd1).fullname).moduleversion ; 
+
+#Get public and private function definition files.
+$functionFolders = @('Public', 'Internal', 'Classes') ;
+ForEach ($folder in $functionFolders) {
+    $folderPath = Join-Path -Path $PSScriptRoot -ChildPath $folder ;
+    If (Test-Path -Path $folderPath) {
+        Write-Verbose -Message "Importing from $folder" ;
+        $functions = Get-ChildItem -Path $folderPath -Filter '*.ps1'  ;
+        ForEach ($function in $functions) {
+            Write-Verbose -Message "  Importing $($function.BaseName)" ;
+            . $($function.FullName) ;
+        } ;
+    } ;
+} ;
+$publicFunctions = (Get-ChildItem -Path "$PSScriptRoot\Public" -Filter '*.ps1').BaseName ;
+Export-ModuleMember -Function $publicFunctions -Alias * ; 
+
