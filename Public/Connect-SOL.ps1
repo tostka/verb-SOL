@@ -1,3 +1,4 @@
+#*------v Function Connect-SOL v------
 Function Connect-SOL {
     <#
     .SYNOPSIS
@@ -9,6 +10,7 @@ Function Connect-SOL {
     Based on 'overlapping functions' concept by: ExactMike Perficient, Global Knowl... (Partner)
     Website:	https://social.technet.microsoft.com/Forums/msonline/en-US/f3292898-9b8c-482a-86f0-3caccc0bd3e5/exchange-powershell-monitoring-remote-sessions?forum=onlineservicesexchange
     REVISIONS   :
+    * 10:03 AM 5/12/2020 updated cred to $credO365TORSID
     * 10:55 AM 12/6/2019 Connect-SOL: added suffix to TitleBar tag for non-TOR tenants, also config'd a central tab vari
     * 5:14 PM 11/27/2019 repl $MFA code with get-TenantMFARequirement
     * 1:07 PM 11/25/2019 added *tol/*tor/*cmw alias variants for connect & reconnect
@@ -40,7 +42,7 @@ Function Connect-SOL {
         [Parameter(HelpMessage="[noun]-PREFIX[command] PREFIX string for clearly marking cmdlets sourced in this connection [-CommandPrefix SOLlab]")]
         [string]$CommandPrefix = 'SOL',
         [Parameter(HelpMessage="Credential to use for this connection [-credential 'ADMINUPN@DOMAIN.COM']")]
-        [System.Management.Automation.PSCredential]$Credential = $credTORSID,
+        [System.Management.Automation.PSCredential]$Credential = $credO365TORSID,
         [Parameter(HelpMessage="Debugging Flag [-showDebug]")]
         [switch] $showDebug
     ) ;
@@ -180,4 +182,4 @@ Function Connect-SOL {
             If ($Exit -eq $Retries) {Write-Warning "Unable to exec cmd!"} ;
         } # try-E
     } Until ((Get-PSSession |Where-Object{$_.ComputerName -match $rgxSOLPsHostName -AND $_.State -eq "Opened" -AND $_.Availability -eq "Available"}) -or ($Exit -eq $Retries) ) # loop-E
-}
+} ; #*------^ END Function Connect-SOL ^------

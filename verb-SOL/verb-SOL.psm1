@@ -1,11 +1,11 @@
-﻿# verb-SOL.psm1
+﻿# verb-sol.psm1
 
 
 <#
 .SYNOPSIS
 verb-SOL - Skype-Online-related functions
 .NOTES
-Version     : 1.0.1.0
+Version     : 1.0.4.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -34,8 +34,10 @@ https://github.com/tostka/verb-SOL
 #>
 
 
-$script:ModuleRoot = $PSScriptRoot ; 
-$script:ModuleVersion = (Import-PowerShellDataFile -Path (get-childitem $script:moduleroot\*.psd1).fullname).moduleversion ; 
+$script:ModuleRoot = $PSScriptRoot ;
+$script:ModuleVersion = (Import-PowerShellDataFile -Path (get-childitem $script:moduleroot\*.psd1).fullname).moduleversion ;
+
+#*======v FUNCTIONS v======
 
 
 
@@ -51,6 +53,7 @@ Function Connect-SOL {
     Based on 'overlapping functions' concept by: ExactMike Perficient, Global Knowl... (Partner)
     Website:	https://social.technet.microsoft.com/Forums/msonline/en-US/f3292898-9b8c-482a-86f0-3caccc0bd3e5/exchange-powershell-monitoring-remote-sessions?forum=onlineservicesexchange
     REVISIONS   :
+    * 10:03 AM 5/12/2020 updated cred to $credO365TORSID
     * 10:55 AM 12/6/2019 Connect-SOL: added suffix to TitleBar tag for non-TOR tenants, also config'd a central tab vari
     * 5:14 PM 11/27/2019 repl $MFA code with get-TenantMFARequirement
     * 1:07 PM 11/25/2019 added *tol/*tor/*cmw alias variants for connect & reconnect
@@ -82,7 +85,7 @@ Function Connect-SOL {
         [Parameter(HelpMessage="[noun]-PREFIX[command] PREFIX string for clearly marking cmdlets sourced in this connection [-CommandPrefix SOLlab]")]
         [string]$CommandPrefix = 'SOL',
         [Parameter(HelpMessage="Credential to use for this connection [-credential 'ADMINUPN@DOMAIN.COM']")]
-        [System.Management.Automation.PSCredential]$Credential = $credTORSID,
+        [System.Management.Automation.PSCredential]$Credential = $credO365TORSID,
         [Parameter(HelpMessage="Debugging Flag [-showDebug]")]
         [switch] $showDebug
     ) ;
@@ -400,8 +403,8 @@ Export-ModuleMember -Function Connect-SOL,csolcmw,csoltol,csoltor,Disconnect-SOL
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUtCsxLQH8Jf1lPER46vQtpo4H
-# FfKgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUA/8EKPfStQEW8P//mgSDqwtx
+# bYCgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -416,9 +419,9 @@ Export-ModuleMember -Function Connect-SOL,csolcmw,csoltol,csoltor,Disconnect-SOL
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRBFgtf
-# P3B61if8QxNH/kd4WmyE6TANBgkqhkiG9w0BAQEFAASBgI2Upu/GfTJDbpTZYnRR
-# YNJTybYxZeRRUafO+JSe74FCDm/pomrxYIiIG0Qt+9Bw+xuqUV+Y5egNywdkgPjZ
-# XkqDxadDkDrUVzhnWX1i+Y+/U8O40BX0GZ8KtlEN2UOy8hACvbRnImR9fm7XHs7f
-# F93giBlxE4kj4u6l2aJ9x2OL
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBS5ZT0z
+# OvAF9MOacHmOoe/1g2FbbjANBgkqhkiG9w0BAQEFAASBgC4Kj+e6fnW1mYsEz474
+# eAEJ58rA8QP/tLxmKzd9Eix8BVJQf/5uw0dfsgXQBbWBlZ/3c5yCcdiIrmRroBj3
+# Ss+oYggQaKZn0qphamtf/VvsJfC6lzbFaUO6/JNF0KfURPJid5+6JfHh+rBPnTNU
+# GxUeQlm1ibVmiDHRjNYAmbsC
 # SIG # End signature block

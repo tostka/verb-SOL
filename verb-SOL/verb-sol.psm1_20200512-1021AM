@@ -1,4 +1,4 @@
-# verb-sol.psm1
+﻿# verb-SOL.psm1
 
 
 <#
@@ -77,7 +77,7 @@ Function Connect-SOL {
     Connect an explicit credential, and use 'SOLlab' as the cmdlet prefix
     .LINK
     https://social.technet.microsoft.com/Forums/msonline/en-US/f3292898-9b8c-482a-86f0-3caccc0bd3e5/exchange-powershell-monitoring-remote-sessions?forum=onlineservicesexchange
-    *---^ END Comment-based Help  ^--- #>
+    #>
 
     Param(
         [Parameter(HelpMessage="Force domain autodiscovery to connect to SOL (necessary with Skype Hybrid on-prem)[-OverrideAdminDomain TENANT.onmicrosoft.com]")]
@@ -96,11 +96,11 @@ Function Connect-SOL {
     $MFA = get-TenantMFARequirement -Credential $Credential ;
 
     $sTitleBarTag="SOL" ;
-    
+
     # use credential domain to determine target org
-    $rgxLegacyLogon = '\w*\\\w*' ; 
+    $rgxLegacyLogon = '\w*\\\w*' ;
     if($Credential.username -match $rgxLegacyLogon){
-        $credDom =$Credential.username.split('\')[0] ; 
+        $credDom =$Credential.username.split('\')[0] ;
         switch ($credDom){
             "$($TORMeta['legacyDomain'])" {
                 # leave untagged
@@ -111,7 +111,7 @@ Function Connect-SOL {
             "$CMWMeta['legacyDomain'])" {
                 $sTitleBarTag = $sTitleBarTag + "CMW"
             }
-        } ; 
+        } ;
     } elseif ($Credential.username.contains('@')){
         $credDom = ($Credential.username.split("@"))[1] ;
         switch ($credDom){
@@ -124,107 +124,10 @@ Function Connect-SOL {
             "$CMWMeta['o365_OPDomain'])" {
                 $sTitleBarTag = $sTitleBarTag + "CMW"
             }
-        } ; 
+        } ;
     } else {
         write-warning "$((get-date).ToString('HH:mm:ss')):UNRECOGNIZED CREDENTIAL!:$($Credential.Username)`nUNABLE TO RESOLVE DEFAULT EX10SERVER FOR CONNECTION!" ;
-    }  ;  
-    
-    $spltSOLsess=@{ } ;
-    if($MFA){
-        $spltSOLsess.Add("Credential",$Credential);
-    } else {
-        $spltSOLsess.Add("UserName",$Credential.username);
-    } ;
-
-    # set color scheme to White text on Black
-    #$HOST.UI.RawUI.BackgroundColor = "Black" ; $HOST.UI.RawUI.ForegroundColor = "White" ;
-    If ($OverrideAdminDomain) {
-        $spltSOLsess.Add("OverrideAdminDomain",$OverrideAdminDomain);
-    	Write-Host "Connecting to SOL w Hybrid OverrideAdminDomain:$($OverrideAdminDomain)"  ;
-    } Else {
-    	Write-Host "Connecting to SOL"  ;
-    } ;
-    $Exit = 0 ; # zero out $exit each new cmd try/retried
-    Do {
-        $error.clear() ;# 11:42 AM 9/11/2017 add preclear, we're going to post-test the $error
-        Try {
-            $pltModule=[ordered]@{
-                Name="SkypeOnlineConnector" ;
-                Global=$true;
-                Prefix=$CommandPrefix ;
-                PassThru=$true;
-                DisableNameChecking=$true ;
-            } ;
-            if($showDebug){
-                write-host -foregroundcolor green "`n$((get-date).ToString('HH:mm:ss')):Import-Module w`n$(($pltModule|out-string).trim())" ;
-            } ;
-            $Global:SOLModule = Import-Module @pltModule ;
-            if($showDebug){
-                write-host -foregroundcolor green "`n$((get-date).ToString('HH:mm:ss')):New-CsOnlineSession w`n$(($spltSOLsess|out-string).trim())" ;
-            } ;
-
-            $Global:SOLSession = New-CsOnlineSession @spltSOLsess ;
-            <# PSSession object: 8:51 AM 6/20/2019
-            State                  : Opened
-            IdleTimeout            : 900000
-            OutputBufferingMode    : None
-            DisconnectedOn         :
-            ExpiresOn              :
-            ComputerType           : RemoteMachine
-            ComputerName           : admin0a.online.lync.com
-            ContainerId            :
-            VMName                 :
-            VMId                   :
-            ConfigurationName      : Microsoft.PowerShell
-            InstanceId             : efa81a32-caaf-4e67-8c2a-015ba96e3d1a
-            Id                     : 2
-            Name                   : Session2
-            Availability           : Available
-            ApplicationPrivateData : {SessionInfo, PSVersionTable}
-            Runspace               : System.Management.Automation.RemoteRunspace
-            #>
-            #Import-PSSession -Session $CSSession
-            #Import-PSSession $Global:SOLSession -Prefix $CommandPrefix -DisableNameChecking -AllowClobber
-            $pltPSS=[ordered]@{
-                Session=$Global:SOLSession ;
-                Prefix=$CommandPrefix ;
-                DisableNameChecking=$true  ;
-                AllowClobber=$true ;
-            } ;
-            if($showDebug){
-                write-host -foregroundcolor green "`n$((get-date).ToString('HH:mm:ss')):Import-PSSession w`n$(($pltPSS|out-string).trim())" ;
-            } ;
-            Import-PSSession @pltPSS ;
-            #$SOLSession = New-SOLCsOnlineSession -Credential $o365cred ;
-            # with hybrid above throws up: The remote name could not be resolved: 'lyncdiscover.DOMAIN.com'
-
-            <# 3:10 PM 4/18/2018 live connect pssession
-            #-=-=-=-=-=-=-=-=
-            Name              : Session3
-            ComputerName      : admin0a.online.lync.com
-            ConfigurationName : Microsoft.PowerShell
-            #-=-=-=-=-=-=-=-=
-            #>
-            if($error.count -ne 0) {
-                if($error[0].FullyQualifiedErrorId -eq '-2144108477,PSSessionOpenFailed'){
-                    write-warning "$((get-date).ToString('HH:mm:ss')):AUTH FAIL BAD PASSWORD? ABORTING TO AVOID LOCKOUT!" ;
-                    throw "$((get-date).ToString('HH:mm:ss')):AUTH FAIL BAD PASSWORD? ABORTING TO AVOID LOCKOUT!" ;
-                    EXIT ;
-                } ;
-            } ;
-            
-            Add-PSTitleBar $sTitleBarTag ;
-            $Exit = $Retries ;
-        } Catch {
-            # capture auth errors - nope, they never get here, if use throw, it doesn't pass in the auth $error, gens a new one.
-            # pause to give it time to reset
-            Start-Sleep -Seconds $RetrySleep ;
-            $Exit ++ ;
-            Write-Verbose "Failed to exec cmd because: $($Error[0])" ;
-            Write-Verbose "Try #: $Exit" ;
-            If ($Exit -eq $Retries) {Write-Warning "Unable to exec cmd!"} ;
-        } # try-E
-    } Until ((Get-PSSession |Where-Object{$_.ComputerName -match $rgxSOLPsHostName -AND $_.State -eq "Opened" -AND $_.Availability -eq "Available"}) -or ($Exit -eq $Retries) ) # loop-E
+    }  ;
 }
 
 #*------^ Connect-SOL.ps1 ^------
@@ -399,3 +302,29 @@ function rsoltor {Reconnect-SOL -cred $credO365TORSID}
 
 Export-ModuleMember -Function Connect-SOL,csolcmw,csoltol,csoltor,Disconnect-SOL,Reconnect-SOL,rsolcmw,rsoltol,rsoltor -Alias *
 
+
+# SIG # Begin signature block
+# MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
+# gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUgqgWedqRzUW4NWmVJTkdtXDJ
+# TDSgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
+# Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
+# ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
+# a+NnFYNRPPa8Bnm071ohGe27jNWKPVUbDfd0OY2sqCBQCEFVb5pqcIECRRnlhN5H
+# +EEJmm2x9AU0uS7IHxHeUo8fkW4vm49adkat5gAoOZOwbuNntBOAJy9LCyNs4F1I
+# KKphP3TyDwe8XqsEVwB2m9FPAgMBAAGjdjB0MBMGA1UdJQQMMAoGCCsGAQUFBwMD
+# MF0GA1UdAQRWMFSAEL95r+Rh65kgqZl+tgchMuKhLjAsMSowKAYDVQQDEyFQb3dl
+# clNoZWxsIExvY2FsIENlcnRpZmljYXRlIFJvb3SCEGwiXbeZNci7Rxiz/r43gVsw
+# CQYFKw4DAh0FAAOBgQB6ECSnXHUs7/bCr6Z556K6IDJNWsccjcV89fHA/zKMX0w0
+# 6NefCtxas/QHUA9mS87HRHLzKjFqweA3BnQ5lr5mPDlho8U90Nvtpj58G9I5SPUg
+# CspNr5jEHOL5EdJFBIv3zI2jQ8TPbFGC0Cz72+4oYzSxWpftNX41MmEsZkMaADGC
+# AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
+# Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
+# AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQOqBmt
+# wusVstIOIFN1s6lt8x01/jANBgkqhkiG9w0BAQEFAASBgI58xej8sY56IXlc7KLn
+# aPHJJVhUuIBtjh3LTz4EAD0tOOOien1U02e2HAmvyd2OKa7mE+uEX3TXokjK06JI
+# ofMwvlEOBwSW5Uotxa8yjx1KF65j7xiipp9GCajCznmOaXho01XipEoAwIiTRkoR
+# sirT6E3biSnEmM8T5WmlfI76
+# SIG # End signature block
