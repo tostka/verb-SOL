@@ -1,3 +1,4 @@
+#*------v Function Reconnect-SOL v------
 Function Reconnect-SOL {
     <#
     .SYNOPSIS
@@ -88,3 +89,4 @@ Function Reconnect-SOL {
         if($tryNo -gt $DoRetries ){throw "RETRIED SOL CONNECT $($tryNo) TIMES, ABORTING!" } ;
     } Until ((Get-PSSession |Where-Object{$_.ComputerName -match $rgxSOLPsHostName -AND $_.State -eq "Opened" -AND $_.Availability -eq "Available"}))
 }
+#*------^ END Function Reconnect-SOL ^------
