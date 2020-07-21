@@ -12,7 +12,7 @@
 RootModule = 'verb-SOL.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.0.5'
+ModuleVersion = '1.0.7'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -69,7 +69,7 @@ Description = 'Skype-Online-related functions'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('Connect-SOL','csolcmw','csoltol','csoltor','Disconnect-SOL','Reconnect-SOL','rsolcmw','rsoltol','rsoltor')
+FunctionsToExport = @('Connect-SOL','csolcmw','csoltol','csoltor','csolVEN','Disconnect-SOL','Reconnect-SOL','rsolcmw','rsoltol','rsoltor','rsolVEN')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'
@@ -126,8 +126,8 @@ PrivateData = @{
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUibFu+OyQoy8M+VQWUY4PkQj2
-# kk6gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUA7Iic+omckH7Y34NB03nHFTZ
+# sQ2gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -142,9 +142,9 @@ PrivateData = @{
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSu/P5M
-# BZJl/wpkAKBu01k1+EVjHTANBgkqhkiG9w0BAQEFAASBgEC0Hd/XUiqFwWa+V0oi
-# wG/0UMvgiqpsT25BkeULQKGOIAxnxKISo8xLJXWhAbQk710j0OEYPd3AGB/NiUoU
-# G94zVwQpWjepPN8xi7OA+RHX41pl1KQuZ9wmz0f7/hul63GtETOsiazx2HILXsHC
-# 44CPZfFmC7gwVOfvQYIcJwJE
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSE8i68
+# akhCmTv380/RPexzC7oGUTANBgkqhkiG9w0BAQEFAASBgCIbU0Kqz8p4lyCbDvzS
+# Y3nbxUIdXvF6wiM5z/mDxHtF/UwbCOXdzSdJf/Zu+5s1WAU1KbP9ZZ30lXu+Lo70
+# Kkmuf2i0tLRlqBZI+x41sLZPp7Iyzs95pZdBmG7+V40+FfNiWqBfIHDVTC+iZ9rQ
+# Vehd/TpQVbDfY/WucCFSv1Xy
 # SIG # End signature block

@@ -1,11 +1,11 @@
-﻿# verb-SOL.psm1
+﻿# verb-sol.psm1
 
 
 <#
 .SYNOPSIS
 verb-SOL - Skype-Online-related functions
 .NOTES
-Version     : 1.0.7.0
+Version     : 1.0.5.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -53,7 +53,6 @@ Function Connect-SOL {
     Based on 'overlapping functions' concept by: ExactMike Perficient, Global Knowl... (Partner)
     Website:	https://social.technet.microsoft.com/Forums/msonline/en-US/f3292898-9b8c-482a-86f0-3caccc0bd3e5/exchange-powershell-monitoring-remote-sessions?forum=onlineservicesexchange
     REVISIONS   :
-    * 5:17 PM 7/21/2020 add ven supp
     * 10:03 AM 5/12/2020 updated cred to $credO365TORSID
     * 10:55 AM 12/6/2019 Connect-SOL: added suffix to TitleBar tag for non-TOR tenants, also config'd a central tab vari
     * 5:14 PM 11/27/2019 repl $MFA code with get-TenantMFARequirement
@@ -112,10 +111,6 @@ Function Connect-SOL {
             "$CMWMeta['legacyDomain'])" {
                 $sTitleBarTag = $sTitleBarTag + "CMW"
             }
-            "$VENMeta['legacyDomain'])" {
-                $sTitleBarTag = $sTitleBarTag + "VEN"
-            }
-            default {throw "Failed to resolve a `$credVariTag` from populated global 'o365_TenantDomain' props, for credential domain:$($CredDom)" } ;
         } ; 
     } elseif ($Credential.username.contains('@')){
         $credDom = ($Credential.username.split("@"))[1] ;
@@ -129,10 +124,6 @@ Function Connect-SOL {
             "$CMWMeta['o365_OPDomain'])" {
                 $sTitleBarTag = $sTitleBarTag + "CMW"
             }
-            "$VENMeta['o365_OPDomain'])" {
-                $sTitleBarTag = $sTitleBarTag + "VEN"
-            }
-            default {throw "Failed to resolve a `$credVariTag` from populated global 'o365_TenantDomain' props, for credential domain:$($CredDom)" } ;
         } ; 
     } else {
         write-warning "$((get-date).ToString('HH:mm:ss')):UNRECOGNIZED CREDENTIAL!:$($Credential.Username)`nUNABLE TO RESOLVE DEFAULT EX10SERVER FOR CONNECTION!" ;
@@ -252,11 +243,6 @@ function csoltol {Connect-SOL -cred $credO365TOLSID}
 function csoltor {Connect-SOL -cred $credO365TORSID}
 
 #*------^ csoltor.ps1 ^------
-
-#*------v csolVEN.ps1 v------
-function csolVEN {Connect-SOL -cred $credO365VENCSID}
-
-#*------^ csolVEN.ps1 ^------
 
 #*------v Disconnect-SOL.ps1 v------
 Function Disconnect-SOL {
@@ -409,21 +395,16 @@ function rsoltor {Reconnect-SOL -cred $credO365TORSID}
 
 #*------^ rsoltor.ps1 ^------
 
-#*------v rsolVEN.ps1 v------
-function rsolVEN {Reconnect-SOL -cred $credO365VENCSID}
-
-#*------^ rsolVEN.ps1 ^------
-
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Connect-SOL,csolcmw,csoltol,csoltor,csolVEN,Disconnect-SOL,Reconnect-SOL,rsolcmw,rsoltol,rsoltor,rsolVEN -Alias *
+Export-ModuleMember -Function Connect-SOL,csolcmw,csoltol,csoltor,Disconnect-SOL,Reconnect-SOL,rsolcmw,rsoltol,rsoltor -Alias *
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUnj4uyHiQikTtfQVJS89SFpZ8
-# Yh6gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU5S6tapTHXJ3SHtXuuaRLLBOl
+# xqOgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -438,9 +419,9 @@ Export-ModuleMember -Function Connect-SOL,csolcmw,csoltol,csoltor,csolVEN,Discon
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSqxANA
-# XsbaP6BXdphG1FNB9vyOQjANBgkqhkiG9w0BAQEFAASBgAXf4z18T4C60RBsU9SC
-# 1W4zdfPidGCs4D6mcEr+NF7usH8cQMu5CwUJEtQCx2+aaDG0xI8Y1bV4MA0MR/9F
-# w2Ekyj0rpp+aJEnh8ZhvlG5qaJ8qmvU8OGx1vn64hfM4hx+Mtke6VtZBxMSG/6+e
-# sfrimTwE5QMlgiCAQu0l8ZiO
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQpd6by
+# ovUYBfCkzTcBOBOVmxGIczANBgkqhkiG9w0BAQEFAASBgLT2ZJ1R7/wLZzoKfFy5
+# TjdH9zpi1STIognkQCeiezfFSrFzvHF933iYgIAlBfYfoAd9hsA7P9xLZr5xt7WN
+# ewWsJamm98fZ94cW6CRgkaDPBK5Wy/L86mKBH+vmYBW49/17DraF1q9gEiwKk9hJ
+# REmw/iygFklD/vMILG5U90RX
 # SIG # End signature block

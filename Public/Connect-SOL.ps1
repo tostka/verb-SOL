@@ -10,6 +10,7 @@ Function Connect-SOL {
     Based on 'overlapping functions' concept by: ExactMike Perficient, Global Knowl... (Partner)
     Website:	https://social.technet.microsoft.com/Forums/msonline/en-US/f3292898-9b8c-482a-86f0-3caccc0bd3e5/exchange-powershell-monitoring-remote-sessions?forum=onlineservicesexchange
     REVISIONS   :
+    * 5:17 PM 7/21/2020 add ven supp
     * 10:03 AM 5/12/2020 updated cred to $credO365TORSID
     * 10:55 AM 12/6/2019 Connect-SOL: added suffix to TitleBar tag for non-TOR tenants, also config'd a central tab vari
     * 5:14 PM 11/27/2019 repl $MFA code with get-TenantMFARequirement
@@ -68,6 +69,10 @@ Function Connect-SOL {
             "$CMWMeta['legacyDomain'])" {
                 $sTitleBarTag = $sTitleBarTag + "CMW"
             }
+            "$VENMeta['legacyDomain'])" {
+                $sTitleBarTag = $sTitleBarTag + "VEN"
+            }
+            default {throw "Failed to resolve a `$credVariTag` from populated global 'o365_TenantDomain' props, for credential domain:$($CredDom)" } ;
         } ; 
     } elseif ($Credential.username.contains('@')){
         $credDom = ($Credential.username.split("@"))[1] ;
@@ -81,6 +86,10 @@ Function Connect-SOL {
             "$CMWMeta['o365_OPDomain'])" {
                 $sTitleBarTag = $sTitleBarTag + "CMW"
             }
+            "$VENMeta['o365_OPDomain'])" {
+                $sTitleBarTag = $sTitleBarTag + "VEN"
+            }
+            default {throw "Failed to resolve a `$credVariTag` from populated global 'o365_TenantDomain' props, for credential domain:$($CredDom)" } ;
         } ; 
     } else {
         write-warning "$((get-date).ToString('HH:mm:ss')):UNRECOGNIZED CREDENTIAL!:$($Credential.Username)`nUNABLE TO RESOLVE DEFAULT EX10SERVER FOR CONNECTION!" ;
