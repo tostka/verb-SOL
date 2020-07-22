@@ -1,4 +1,4 @@
-#*------v Function Reconnect-SOL v------
+#*------v Reconnect-SOL.ps1 v------
 Function Reconnect-SOL {
     <#
     .SYNOPSIS
@@ -49,11 +49,9 @@ Function Reconnect-SOL {
 
     Param(
         [Parameter(HelpMessage="Credential to use for this connection [-credential [credential obj variable]")]
-        [System.Management.Automation.PSCredential]$Credential,
-        [Parameter(HelpMessage="Debugging Flag [-showDebug]")]
-        [switch] $showDebug
+        [System.Management.Automation.PSCredential]$Credential
     ) ;
-
+    $verbose = ($VerbosePreference -eq "Continue") ; 
     # fault tolerant looping SOL connect, don't let it exit until a connection is present, and stable, or return error for hard time out
     $tryNo=0 ;
     Do {
@@ -70,7 +68,7 @@ Function Reconnect-SOL {
             Runspace               : System.Management.Automation.RemoteRunspace
         #>
         if (($SOLSession.state -ne 'Opened' -AND $SOLSession.Availability -ne 'Available') -or !$SOLSession) {
-            if($showdebug){ write-host -foregroundcolor yellow "$((get-date).ToString('HH:mm:ss')):Connecting:`$SOLSession invalid state:$(($SOLSession| Format-Table -a State,Availability |out-string).trim())" } ;
+            write-verbose "$((get-date).ToString('HH:mm:ss')):Connecting:`$SOLSession invalid state:$(($SOLSession| Format-Table -a State,Availability |out-string).trim())"  ;
             Disconnect-SOL; Disconnect-PssBroken ;Start-Sleep -Seconds 3;
             if(!$Credential){
                 Connect-SOL ;
@@ -79,7 +77,7 @@ Function Reconnect-SOL {
             } ;
         } ;
         if( !(Get-PSSession|Where-Object{($_.ComputerName -match $rgxSOLPsHostName) -AND ($_.State -eq 'Opened') -AND ($_.Availability -eq 'Available')}) ){
-            if($showdebug){ write-host -foregroundcolor yellow "$((get-date).ToString('HH:mm:ss')):Reconnecting:No existing PSSESSION matching $($rgxSOLPsHostName) with valid Open/Availability:$((Get-PSSession|Where-Object{$_.ComputerName -match $rgxSOLPsHostName}| Format-Table -a State,Availability |out-string).trim())" } ;
+            write-verbose "$((get-date).ToString('HH:mm:ss')):Reconnecting:No existing PSSESSION matching $($rgxSOLPsHostName) with valid Open/Availability:$((Get-PSSession|Where-Object{$_.ComputerName -match $rgxSOLPsHostName}| Format-Table -a State,Availability |out-string).trim())" ;
             if(!$Credential){
                 Reconnect-SOL ;
             } else {
@@ -89,4 +87,4 @@ Function Reconnect-SOL {
         if($tryNo -gt $DoRetries ){throw "RETRIED SOL CONNECT $($tryNo) TIMES, ABORTING!" } ;
     } Until ((Get-PSSession |Where-Object{$_.ComputerName -match $rgxSOLPsHostName -AND $_.State -eq "Opened" -AND $_.Availability -eq "Available"}))
 }
-#*------^ END Function Reconnect-SOL ^------
+#*------^ Reconnect-SOL.ps1 ^------

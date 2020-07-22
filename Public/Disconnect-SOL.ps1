@@ -1,3 +1,4 @@
+#*------v Disconnect-SOL.ps1 v------
 Function Disconnect-SOL {
     <#
     .SYNOPSIS
@@ -31,8 +32,10 @@ Function Disconnect-SOL {
     https://social.technet.microsoft.com/Forums/msonline/en-US/f3292898-9b8c-482a-86f0-3caccc0bd3e5/exchange-powershell-monitoring-remote-sessions?forum=onlineservicesexchange
     *---^ END Comment-based Help  ^--- #>
     # 9:25 AM 3/21/2017 getting undefined on the below, pretest them
+    $verbose = ($VerbosePreference -eq "Continue") ; 
     if($Global:SOLModule){$Global:SOLModule | Remove-Module -Force ; } ;
     if($Global:SOLSession){$Global:SOLSession | Remove-PSSession ; } ;
     Get-PSSession|Where-Object{$_.ComputerName -match $rgxSOLPsHostName} | Remove-PSSession ;
     Remove-PSTitlebar 'SOL' ;
 }
+#*------^ Disconnect-SOL.ps1 ^------

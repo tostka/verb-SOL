@@ -1,4 +1,4 @@
-# verb-sol.psm1
+﻿# verb-sol.psm1
 
 
 <#
@@ -53,7 +53,7 @@ Function Connect-SOL {
     Based on 'overlapping functions' concept by: ExactMike Perficient, Global Knowl... (Partner)
     Website:	https://social.technet.microsoft.com/Forums/msonline/en-US/f3292898-9b8c-482a-86f0-3caccc0bd3e5/exchange-powershell-monitoring-remote-sessions?forum=onlineservicesexchange
     REVISIONS   :
-    * 7:13 AM 7/22/2020 replaced codeblock w get-TenantTag(); rewrote SOL OverrideAdminDomain support, to dyn pull from infra settings ; fixed $MFA handling issues (flipped detect) ; replaced debug echos with verbose
+    * 7:13 AM 7/22/2020 replaced codeblock w get-TenantTag()
     * 5:17 PM 7/21/2020 add ven supp
     * 10:03 AM 5/12/2020 updated cred to $credO365TORSID
     * 10:55 AM 12/6/2019 Connect-SOL: added suffix to TitleBar tag for non-TOR tenants, also config'd a central tab vari
@@ -83,16 +83,17 @@ Function Connect-SOL {
 
     Param(
         [Parameter(HelpMessage="Force domain autodiscovery to connect to SOL (necessary with Skype Hybrid on-prem)[-OverrideAdminDomain TENANT.onmicrosoft.com]")]
-        [string]$OverrideAdminDomain,
+        [string]$OverrideAdminDomain = $TORMeta['o365_TenantDomain'],
         [Parameter(HelpMessage="[noun]-PREFIX[command] PREFIX string for clearly marking cmdlets sourced in this connection [-CommandPrefix SOLlab]")]
         [string]$CommandPrefix = 'SOL',
         [Parameter(HelpMessage="Credential to use for this connection [-credential 'ADMINUPN@DOMAIN.COM']")]
-        [System.Management.Automation.PSCredential]$Credential = $credO365TORSID
+        [System.Management.Automation.PSCredential]$Credential = $credO365TORSID,
+        [Parameter(HelpMessage="Debugging Flag [-showDebug]")]
+        [switch] $showDebug
     ) ;
-    $verbose = ($VerbosePreference -eq "Continue") ; 
     # disable prefix spec, unless actually blanked (e.g. centrally spec'd in profile).
     if(!$CommandPrefix){ $CommandPrefix='SOL' ; } ;
-    
+
     # pulling the $MFA auto by splitting the credential and checking the o365_*_OPDomain & o365_$($credVariTag)_MFA global varis
     $MFA = get-TenantMFARequirement -Credential $Credential ;
 
@@ -104,7 +105,7 @@ Function Connect-SOL {
     } ; 
     
     $spltSOLsess=@{ } ;
-    if(!$MFA){
+    if($MFA){
         $spltSOLsess.Add("Credential",$Credential);
     } else {
         $spltSOLsess.Add("UserName",$Credential.username);
@@ -112,43 +113,12 @@ Function Connect-SOL {
 
     # set color scheme to White text on Black
     #$HOST.UI.RawUI.BackgroundColor = "Black" ; $HOST.UI.RawUI.ForegroundColor = "White" ;
-    # $OverrideAdminDomain = $TORMeta['o365_TenantDomain'] ; 
-
-    $credDom = ($Credential.username.split("@"))[1] ;
-    $Metas=(gv *meta|?{$_.name -match '^\w{3}Meta$'}) ; 
-    foreach ($Meta in $Metas){
-        if( ($credDom -eq $Meta.value.o365_TenantDomain) -OR ($credDom -eq $Meta.value.o365_OPDomain)){
-            $OverrideAdminDomain = $Meta.value.SOLOverrideAdminDomain ; 
-            break ; 
-        } ; 
-    } ; 
-
     If ($OverrideAdminDomain) {
         $spltSOLsess.Add("OverrideAdminDomain",$OverrideAdminDomain);
     	Write-Host "Connecting to SOL w Hybrid OverrideAdminDomain:$($OverrideAdminDomain)"  ;
     } Else {
     	Write-Host "Connecting to SOL"  ;
     } ;
-
-    if(!(get-command -Name New-CsOnlineSession -ea 0)){
-        if(!(Get-Module SkypeOnlineConnector -ListAvailable -ErrorAction Stop | out-null)){ 
-            <#dyn install missing module - but SOL mod *isn't avail* in psg must be BINARY dl'd & installed (facepalm)
-            if(get-module PowerShellGet){ 
-                Install-Module SkypeOnlineConnector -scope CurrentUser 
-
-            }else { throw "REQUIRES WIN10, PSV5+ OR installed PowerShellGet module" } ;
-            #>
-            #https://docs.microsoft.com/en-us/skypeforbusiness/set-up-your-computer-for-windows-powershell/download-and-install-the-skype-for-business-online-connector
-            $SOLModRefUrl = "https://docs.microsoft.com/en-us/skypeforbusiness/set-up-your-computer-for-windows-powershell/download-and-install-the-skype-for-business-online-connector" ; 
-            $SOLModDlUrl = "https://www.microsoft.com/download/details.aspx?id=39366" ; 
-            throw "MISSING REQUIRED SkypeOnlineConnector *binary* module`n -*NOT* available from PSGallery or other automatable sources`nSee support Site:`n$($SOLModRefURL)`nor MS DL:`n$($SOLModDlUrl)`n`nDL & Install, and restart PS before attempting to connect to SOL"
-        }  ;
-        <#Try {Get-Module SkypeOnlineConnector -ErrorAction Stop | out-null } Catch {Import-Module -Name SkypeOnlineConnector -ErrorAction Stop  } ;
-        if(!$MFA){ $Teamssplat.Add("Credential",$Credential) }
-        else { $Teamssplat.Add("AccountId",$Credential.username) }
-        #>
-    } else {  write-verbose "(SkypeOnlineConnector module installed)" } ;
-    
     $Exit = 0 ; # zero out $exit each new cmd try/retried
     Do {
         $error.clear() ;# 11:42 AM 9/11/2017 add preclear, we're going to post-test the $error
@@ -160,11 +130,14 @@ Function Connect-SOL {
                 PassThru=$true;
                 DisableNameChecking=$true ;
             } ;
-            write-verbose "$((get-date).ToString('HH:mm:ss')):Import-Module w`n$(($pltModule|out-string).trim())" ;
-
-
+            if($showDebug){
+                write-host -foregroundcolor green "`n$((get-date).ToString('HH:mm:ss')):Import-Module w`n$(($pltModule|out-string).trim())" ;
+            } ;
             $Global:SOLModule = Import-Module @pltModule ;
-            write-verbose "$((get-date).ToString('HH:mm:ss')):New-CsOnlineSession w`n$(($spltSOLsess|out-string).trim())" ;
+            if($showDebug){
+                write-host -foregroundcolor green "`n$((get-date).ToString('HH:mm:ss')):New-CsOnlineSession w`n$(($spltSOLsess|out-string).trim())" ;
+            } ;
+
             $Global:SOLSession = New-CsOnlineSession @spltSOLsess ;
             <# PSSession object: 8:51 AM 6/20/2019
             State                  : Opened
@@ -193,7 +166,9 @@ Function Connect-SOL {
                 DisableNameChecking=$true  ;
                 AllowClobber=$true ;
             } ;
-            write-verbose "`n$((get-date).ToString('HH:mm:ss')):Import-PSSession w`n$(($pltPSS|out-string).trim())" ;
+            if($showDebug){
+                write-host -foregroundcolor green "`n$((get-date).ToString('HH:mm:ss')):Import-PSSession w`n$(($pltPSS|out-string).trim())" ;
+            } ;
             Import-PSSession @pltPSS ;
             #$SOLSession = New-SOLCsOnlineSession -Credential $o365cred ;
             # with hybrid above throws up: The remote name could not be resolved: 'lyncdiscover.DOMAIN.com'
@@ -283,7 +258,6 @@ Function Disconnect-SOL {
     https://social.technet.microsoft.com/Forums/msonline/en-US/f3292898-9b8c-482a-86f0-3caccc0bd3e5/exchange-powershell-monitoring-remote-sessions?forum=onlineservicesexchange
     *---^ END Comment-based Help  ^--- #>
     # 9:25 AM 3/21/2017 getting undefined on the below, pretest them
-    $verbose = ($VerbosePreference -eq "Continue") ; 
     if($Global:SOLModule){$Global:SOLModule | Remove-Module -Force ; } ;
     if($Global:SOLSession){$Global:SOLSession | Remove-PSSession ; } ;
     Get-PSSession|Where-Object{$_.ComputerName -match $rgxSOLPsHostName} | Remove-PSSession ;
@@ -343,9 +317,11 @@ Function Reconnect-SOL {
 
     Param(
         [Parameter(HelpMessage="Credential to use for this connection [-credential [credential obj variable]")]
-        [System.Management.Automation.PSCredential]$Credential
+        [System.Management.Automation.PSCredential]$Credential,
+        [Parameter(HelpMessage="Debugging Flag [-showDebug]")]
+        [switch] $showDebug
     ) ;
-    $verbose = ($VerbosePreference -eq "Continue") ; 
+
     # fault tolerant looping SOL connect, don't let it exit until a connection is present, and stable, or return error for hard time out
     $tryNo=0 ;
     Do {
@@ -362,7 +338,7 @@ Function Reconnect-SOL {
             Runspace               : System.Management.Automation.RemoteRunspace
         #>
         if (($SOLSession.state -ne 'Opened' -AND $SOLSession.Availability -ne 'Available') -or !$SOLSession) {
-            write-verbose "$((get-date).ToString('HH:mm:ss')):Connecting:`$SOLSession invalid state:$(($SOLSession| Format-Table -a State,Availability |out-string).trim())"  ;
+            if($showdebug){ write-host -foregroundcolor yellow "$((get-date).ToString('HH:mm:ss')):Connecting:`$SOLSession invalid state:$(($SOLSession| Format-Table -a State,Availability |out-string).trim())" } ;
             Disconnect-SOL; Disconnect-PssBroken ;Start-Sleep -Seconds 3;
             if(!$Credential){
                 Connect-SOL ;
@@ -371,7 +347,7 @@ Function Reconnect-SOL {
             } ;
         } ;
         if( !(Get-PSSession|Where-Object{($_.ComputerName -match $rgxSOLPsHostName) -AND ($_.State -eq 'Opened') -AND ($_.Availability -eq 'Available')}) ){
-            write-verbose "$((get-date).ToString('HH:mm:ss')):Reconnecting:No existing PSSESSION matching $($rgxSOLPsHostName) with valid Open/Availability:$((Get-PSSession|Where-Object{$_.ComputerName -match $rgxSOLPsHostName}| Format-Table -a State,Availability |out-string).trim())" ;
+            if($showdebug){ write-host -foregroundcolor yellow "$((get-date).ToString('HH:mm:ss')):Reconnecting:No existing PSSESSION matching $($rgxSOLPsHostName) with valid Open/Availability:$((Get-PSSession|Where-Object{$_.ComputerName -match $rgxSOLPsHostName}| Format-Table -a State,Availability |out-string).trim())" } ;
             if(!$Credential){
                 Reconnect-SOL ;
             } else {
@@ -408,3 +384,29 @@ function rsolVEN {Reconnect-SOL -cred $credO365VENCSID}
 
 Export-ModuleMember -Function Connect-SOL,csolcmw,csoltol,csoltor,csolVEN,Disconnect-SOL,Reconnect-SOL,rsolcmw,rsoltol,rsoltor,rsolVEN -Alias *
 
+
+# SIG # Begin signature block
+# MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
+# gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQURqYgIpru/dCndERSpq3/0jun
+# N+6gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
+# Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
+# ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
+# a+NnFYNRPPa8Bnm071ohGe27jNWKPVUbDfd0OY2sqCBQCEFVb5pqcIECRRnlhN5H
+# +EEJmm2x9AU0uS7IHxHeUo8fkW4vm49adkat5gAoOZOwbuNntBOAJy9LCyNs4F1I
+# KKphP3TyDwe8XqsEVwB2m9FPAgMBAAGjdjB0MBMGA1UdJQQMMAoGCCsGAQUFBwMD
+# MF0GA1UdAQRWMFSAEL95r+Rh65kgqZl+tgchMuKhLjAsMSowKAYDVQQDEyFQb3dl
+# clNoZWxsIExvY2FsIENlcnRpZmljYXRlIFJvb3SCEGwiXbeZNci7Rxiz/r43gVsw
+# CQYFKw4DAh0FAAOBgQB6ECSnXHUs7/bCr6Z556K6IDJNWsccjcV89fHA/zKMX0w0
+# 6NefCtxas/QHUA9mS87HRHLzKjFqweA3BnQ5lr5mPDlho8U90Nvtpj58G9I5SPUg
+# CspNr5jEHOL5EdJFBIv3zI2jQ8TPbFGC0Cz72+4oYzSxWpftNX41MmEsZkMaADGC
+# AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
+# Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
+# AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQUgaok
+# pcIBEy509vHc48QIEF+TCTANBgkqhkiG9w0BAQEFAASBgFHLLhfe1pyZAQX7deXF
+# 8vbcQxgNSakp46uH6T6v7sxBH51KSFjYSMcA5gyrvnX1BVuL750mx1DMVbVX9lhX
+# lCqn0NoVL5bBQuK+6bL1mn27E4QXUKZw+WJoPNeKR51KdvlwS7DzQ+zI6v0KAyZB
+# ivtbRQfoQbNWoCbjW97oxIqA
+# SIG # End signature block
