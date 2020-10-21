@@ -10,6 +10,7 @@ Function Connect-SOL {
     Based on 'overlapping functions' concept by: ExactMike Perficient, Global Knowl... (Partner)
     Website:	https://social.technet.microsoft.com/Forums/msonline/en-US/f3292898-9b8c-482a-86f0-3caccc0bd3e5/exchange-powershell-monitoring-remote-sessions?forum=onlineservicesexchange
     REVISIONS   :
+    * 8:09 AM 10/16/2020 updated $Cred to Meta lookup to cover Down-Level Logon Name's
     * 7:13 AM 7/22/2020 replaced codeblock w get-TenantTag(); rewrote SOL OverrideAdminDomain support, to dyn pull from infra settings ; fixed $MFA handling issues (flipped detect) ; replaced debug echos with verbose
     * 5:17 PM 7/21/2020 add ven supp
     * 10:03 AM 5/12/2020 updated cred to $credO365TORSID
@@ -72,9 +73,15 @@ Function Connect-SOL {
     # $OverrideAdminDomain = $TORMeta['o365_TenantDomain'] ; 
 
     $credDom = ($Credential.username.split("@"))[1] ;
+    if($credential.username){
+        if($credential.username.contains('\')){$credDom = ($Credential.username.split("\"))[0] }
+        elseif($credential.username.contains('@')){$credDom = ($Credential.username.split("@"))[1] }
+        else { throw "Unrecognized or credential.username format (neither '\' or '@' present):$($Credential.username)!. EXITING" ; } ;
+    }elseif($env:userdomain){$credDom = $env:userdomain} 
+    else { throw "Unrecognized credential.username and *NO* `$env:UserName found. EXITING" ; } ;
     $Metas=(gv *meta|?{$_.name -match '^\w{3}Meta$'}) ; 
     foreach ($Meta in $Metas){
-        if( ($credDom -eq $Meta.value.o365_TenantDomain) -OR ($credDom -eq $Meta.value.o365_OPDomain)){
+        if( ($credDom -eq $Meta.value.legacyDomain) -OR ($credDom -eq $Meta.value.o365_TenantDomain) -OR ($credDom -eq $Meta.value.o365_OPDomain)){
             $OverrideAdminDomain = $Meta.value.SOLOverrideAdminDomain ; 
             break ; 
         } ; 
@@ -183,4 +190,5 @@ Function Connect-SOL {
         } # try-E
     } Until ((Get-PSSession |Where-Object{$_.ComputerName -match $rgxSOLPsHostName -AND $_.State -eq "Opened" -AND $_.Availability -eq "Available"}) -or ($Exit -eq $Retries) ) # loop-E
 }
+
 #*------^ Connect-SOL.ps1 ^------

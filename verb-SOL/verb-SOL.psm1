@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-SOL - Skype-Online-related functions
 .NOTES
-Version     : 1.0.9.0
+Version     : 1.0.10.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -53,6 +53,7 @@ Function Connect-SOL {
     Based on 'overlapping functions' concept by: ExactMike Perficient, Global Knowl... (Partner)
     Website:	https://social.technet.microsoft.com/Forums/msonline/en-US/f3292898-9b8c-482a-86f0-3caccc0bd3e5/exchange-powershell-monitoring-remote-sessions?forum=onlineservicesexchange
     REVISIONS   :
+    * 8:09 AM 10/16/2020 updated $Cred to Meta lookup to cover Down-Level Logon Name's
     * 7:13 AM 7/22/2020 replaced codeblock w get-TenantTag(); rewrote SOL OverrideAdminDomain support, to dyn pull from infra settings ; fixed $MFA handling issues (flipped detect) ; replaced debug echos with verbose
     * 5:17 PM 7/21/2020 add ven supp
     * 10:03 AM 5/12/2020 updated cred to $credO365TORSID
@@ -115,9 +116,15 @@ Function Connect-SOL {
     # $OverrideAdminDomain = $TORMeta['o365_TenantDomain'] ; 
 
     $credDom = ($Credential.username.split("@"))[1] ;
+    if($credential.username){
+        if($credential.username.contains('\')){$credDom = ($Credential.username.split("\"))[0] }
+        elseif($credential.username.contains('@')){$credDom = ($Credential.username.split("@"))[1] }
+        else { throw "Unrecognized or credential.username format (neither '\' or '@' present):$($Credential.username)!. EXITING" ; } ;
+    }elseif($env:userdomain){$credDom = $env:userdomain} 
+    else { throw "Unrecognized credential.username and *NO* `$env:UserName found. EXITING" ; } ;
     $Metas=(gv *meta|?{$_.name -match '^\w{3}Meta$'}) ; 
     foreach ($Meta in $Metas){
-        if( ($credDom -eq $Meta.value.o365_TenantDomain) -OR ($credDom -eq $Meta.value.o365_OPDomain)){
+        if( ($credDom -eq $Meta.value.legacyDomain) -OR ($credDom -eq $Meta.value.o365_TenantDomain) -OR ($credDom -eq $Meta.value.o365_OPDomain)){
             $OverrideAdminDomain = $Meta.value.SOLOverrideAdminDomain ; 
             break ; 
         } ; 
@@ -412,8 +419,8 @@ Export-ModuleMember -Function Connect-SOL,csolcmw,csoltol,csoltor,csolVEN,Discon
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUWZWkNRUviZKuCxI4KBHN7k50
-# AtagggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU2oGXcynBE9P/cOWjqlWb7rke
+# 1/6gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -428,9 +435,9 @@ Export-ModuleMember -Function Connect-SOL,csolcmw,csoltol,csoltor,csolVEN,Discon
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBS1abS6
-# vPsMSgK37axePfSkDsENJzANBgkqhkiG9w0BAQEFAASBgBSkYKayBkXi62Tln/0G
-# ZEaKuU7AthYI3SJbh8evhlEQPAP50PiOEWH7fhq8xMG4ryY1e5c9K+XoHfKm3+Q7
-# BRz7fT/Ew9faqs49sGpaohKFiiGHj5F6nWhGNGCmR91C/9AMAxeFL/RZsquRO8c4
-# llZpJbhWK6u+Gac14AMzQrlz
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQU4MWJ
+# cMYMhdFJ9u6dhgBdXoiZTzANBgkqhkiG9w0BAQEFAASBgEiqd5HBmggygSwYdD+T
+# fodYNhQ9sj/TH8+A3xfDcF5bmgOEo79gPZ3mfcG0wbrGgtpb9lBCbPv6ZNoZSX3R
+# OBTgg8vcDmNdtWXwH3TH1AidbmHdJOaoqY25GTH4BBjP576V4VWL7m5EAPdHPoHV
+# xdNsXHZxq3SH4UyzBQXwbAIU
 # SIG # End signature block
