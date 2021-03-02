@@ -10,6 +10,7 @@ Function Connect-SOL {
     Based on 'overlapping functions' concept by: ExactMike Perficient, Global Knowl... (Partner)
     Website:	https://social.technet.microsoft.com/Forums/msonline/en-US/f3292898-9b8c-482a-86f0-3caccc0bd3e5/exchange-powershell-monitoring-remote-sessions?forum=onlineservicesexchange
     REVISIONS   :
+    * 2:44 PM 3/2/2021 added console TenOrg color support
     * 8:09 AM 10/16/2020 updated $Cred to Meta lookup to cover Down-Level Logon Name's
     * 7:13 AM 7/22/2020 replaced codeblock w get-TenantTag(); rewrote SOL OverrideAdminDomain support, to dyn pull from infra settings ; fixed $MFA handling issues (flipped detect) ; replaced debug echos with verbose
     * 5:17 PM 7/21/2020 add ven supp
@@ -178,6 +179,10 @@ Function Connect-SOL {
             } ;
             
             Add-PSTitleBar $sTitleBarTag ;
+            if(($PSFgColor = (Get-Variable  -name "$($TenOrg)Meta").value.PSFgColor) -AND ($PSBgColor = (Get-Variable  -name "$($TenOrg)Meta").value.PSBgColor)){
+                $Host.UI.RawUI.BackgroundColor = $PSBgColor
+                $Host.UI.RawUI.ForegroundColor = $PSFgColor ; 
+            } ;
             $Exit = $Retries ;
         } Catch {
             # capture auth errors - nope, they never get here, if use throw, it doesn't pass in the auth $error, gens a new one.

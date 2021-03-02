@@ -10,6 +10,7 @@ Function Disconnect-SOL {
     Based on original function Author:  ExactMike Perficient, Global Knowl... (Partner)
     Website:	https://social.technet.microsoft.com/Forums/msonline/en-US/f3292898-9b8c-482a-86f0-3caccc0bd3e5/exchange-powershell-monitoring-remote-sessions?forum=onlineservicesexchange
     REVISIONS   :
+    * 2:44 PM 3/2/2021 added console TenOrg color support
     # 10:25 AM 6/20/2019 switched to common $rgxSOLPsHostName
     # 8:47 AM 6/2/2017 cleaned up deadwood, simplified pshelp
     * 8:49 AM 3/15/2017 Disconnect-SOL: add Remove-PSTitleBar 'SOL' to clean up on disconnect
@@ -37,5 +38,6 @@ Function Disconnect-SOL {
     if($Global:SOLSession){$Global:SOLSession | Remove-PSSession ; } ;
     Get-PSSession|Where-Object{$_.ComputerName -match $rgxSOLPsHostName} | Remove-PSSession ;
     Remove-PSTitlebar 'SOL' ;
+    [console]::ResetColor()  # reset console colorscheme
 }
 #*------^ Disconnect-SOL.ps1 ^------

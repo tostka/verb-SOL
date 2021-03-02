@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-SOL - Skype-Online-related functions
 .NOTES
-Version     : 1.0.10.0
+Version     : 1.0.11.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -53,6 +53,7 @@ Function Connect-SOL {
     Based on 'overlapping functions' concept by: ExactMike Perficient, Global Knowl... (Partner)
     Website:	https://social.technet.microsoft.com/Forums/msonline/en-US/f3292898-9b8c-482a-86f0-3caccc0bd3e5/exchange-powershell-monitoring-remote-sessions?forum=onlineservicesexchange
     REVISIONS   :
+    * 2:44 PM 3/2/2021 added console TenOrg color support
     * 8:09 AM 10/16/2020 updated $Cred to Meta lookup to cover Down-Level Logon Name's
     * 7:13 AM 7/22/2020 replaced codeblock w get-TenantTag(); rewrote SOL OverrideAdminDomain support, to dyn pull from infra settings ; fixed $MFA handling issues (flipped detect) ; replaced debug echos with verbose
     * 5:17 PM 7/21/2020 add ven supp
@@ -221,6 +222,10 @@ Function Connect-SOL {
             } ;
             
             Add-PSTitleBar $sTitleBarTag ;
+            if(($PSFgColor = (Get-Variable  -name "$($TenOrg)Meta").value.PSFgColor) -AND ($PSBgColor = (Get-Variable  -name "$($TenOrg)Meta").value.PSBgColor)){
+                $Host.UI.RawUI.BackgroundColor = $PSBgColor
+                $Host.UI.RawUI.ForegroundColor = $PSFgColor ; 
+            } ;
             $Exit = $Retries ;
         } Catch {
             # capture auth errors - nope, they never get here, if use throw, it doesn't pass in the auth $error, gens a new one.
@@ -268,6 +273,7 @@ Function Disconnect-SOL {
     Based on original function Author:  ExactMike Perficient, Global Knowl... (Partner)
     Website:	https://social.technet.microsoft.com/Forums/msonline/en-US/f3292898-9b8c-482a-86f0-3caccc0bd3e5/exchange-powershell-monitoring-remote-sessions?forum=onlineservicesexchange
     REVISIONS   :
+    * 2:44 PM 3/2/2021 added console TenOrg color support
     # 10:25 AM 6/20/2019 switched to common $rgxSOLPsHostName
     # 8:47 AM 6/2/2017 cleaned up deadwood, simplified pshelp
     * 8:49 AM 3/15/2017 Disconnect-SOL: add Remove-PSTitleBar 'SOL' to clean up on disconnect
@@ -295,6 +301,7 @@ Function Disconnect-SOL {
     if($Global:SOLSession){$Global:SOLSession | Remove-PSSession ; } ;
     Get-PSSession|Where-Object{$_.ComputerName -match $rgxSOLPsHostName} | Remove-PSSession ;
     Remove-PSTitlebar 'SOL' ;
+    [console]::ResetColor()  # reset console colorscheme
 }
 
 #*------^ Disconnect-SOL.ps1 ^------
@@ -419,8 +426,8 @@ Export-ModuleMember -Function Connect-SOL,csolcmw,csoltol,csoltor,csolVEN,Discon
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU2oGXcynBE9P/cOWjqlWb7rke
-# 1/6gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUcPI9nfm5S70Lp+BWGeYRPqUI
+# 7T2gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -435,9 +442,9 @@ Export-ModuleMember -Function Connect-SOL,csolcmw,csoltol,csoltor,csolVEN,Discon
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQU4MWJ
-# cMYMhdFJ9u6dhgBdXoiZTzANBgkqhkiG9w0BAQEFAASBgEiqd5HBmggygSwYdD+T
-# fodYNhQ9sj/TH8+A3xfDcF5bmgOEo79gPZ3mfcG0wbrGgtpb9lBCbPv6ZNoZSX3R
-# OBTgg8vcDmNdtWXwH3TH1AidbmHdJOaoqY25GTH4BBjP576V4VWL7m5EAPdHPoHV
-# xdNsXHZxq3SH4UyzBQXwbAIU
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBT9bsMh
+# fpmUdEvTzxlAJXLA8tyz5DANBgkqhkiG9w0BAQEFAASBgDDEnhq4i0U9AY93tmp2
+# Ni/moGsKLvE21LtLmXon2OnZK2vkbtYw/VXOnsZw3iQx9H1clnPHYNSNcKXC244O
+# yOsBI598OKR4+HOo9OyZ6+oCpH+ylM2B3NHlAGujYuWxO3pIu5dJeE0fVtFiiR2W
+# 0RFXK+jV6h7gTkLaThuL/PIP
 # SIG # End signature block
