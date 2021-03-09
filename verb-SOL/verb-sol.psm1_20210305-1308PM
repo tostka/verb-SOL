@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-SOL - Skype-Online-related functions
 .NOTES
-Version     : 1.0.14.0
+Version     : 1.0.12.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -112,6 +112,7 @@ Function Connect-SOL {
         $spltSOLsess.Add("UserName",$Credential.username);
     } ;
     write-verbose "(using cred:$($credential.username))" ; 
+} ;
     # set color scheme to White text on Black
     #$HOST.UI.RawUI.BackgroundColor = "Black" ; $HOST.UI.RawUI.ForegroundColor = "White" ;
     # $OverrideAdminDomain = $TORMeta['o365_TenantDomain'] ; 
@@ -222,13 +223,11 @@ Function Connect-SOL {
             } ;
             
             Add-PSTitleBar $sTitleBarTag ;
-            <# borked by psreadline v1/v2 breaking changes
             if(($PSFgColor = (Get-Variable  -name "$($TenOrg)Meta").value.PSFgColor) -AND ($PSBgColor = (Get-Variable  -name "$($TenOrg)Meta").value.PSBgColor)){
                 write-verbose "(setting console colors:$($TenOrg)Meta.PSFgColor:$($PSFgColor),PSBgColor:$($PSBgColor))" ; 
                 $Host.UI.RawUI.BackgroundColor = $PSBgColor
                 $Host.UI.RawUI.ForegroundColor = $PSFgColor ; 
             } ;
-            #>
             $Exit = $Retries ;
         } Catch {
             # capture auth errors - nope, they never get here, if use throw, it doesn't pass in the auth $error, gens a new one.
@@ -239,8 +238,7 @@ Function Connect-SOL {
             Write-Verbose "Try #: $Exit" ;
             If ($Exit -eq $Retries) {Write-Warning "Unable to exec cmd!"} ;
         } # try-E
-    } Until ((Get-PSSession |Where-Object{$_.ComputerName -match $rgxSOLPsHostName -AND $_.State -eq "Opened" -AND $_.Availability -eq "Available"}) -or ($Exit -eq $Retries) ) # loop-E
-}
+    } Until ((Get-PSSession |Where-Object{$_.ComputerName -match $rgxSOLPsHostName -AND $_.State -eq "Opened" -AND $_.Availability -eq "Available"}) -or ($Exit -eq $Retries) )
 
 #*------^ Connect-SOL.ps1 ^------
 
@@ -429,8 +427,8 @@ Export-ModuleMember -Function Connect-SOL,csolcmw,csoltol,csoltor,csolVEN,Discon
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUxZ1OydYzWzqQRMIFma6r43iM
-# mS2gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUQfymMrE2kBhj8TvoC9URR7XL
+# NjWgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -445,9 +443,9 @@ Export-ModuleMember -Function Connect-SOL,csolcmw,csoltol,csoltor,csolVEN,Discon
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBR9mq0e
-# vN/5/c2FDH8SuoYBshQYuDANBgkqhkiG9w0BAQEFAASBgE0ExZnU/HbGgGGeZ3fu
-# ABnFHjpHffIW6Dv4CgTGFM8F0c/WJV53uwLUCRELlHiM3jVn9OhwxQm/NSG9LBxa
-# ALV2mW78fYAixNLzBuWB+HjDZhZoi9sWZcYFgku/c6DhqvnGO1TAEf7svSZwoLs8
-# L5F1plFKdDltniCFGLnV4N54
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTQhAV7
+# Csh4fN1a6YXPJrE+zUh2gDANBgkqhkiG9w0BAQEFAASBgDaIuBWu0vrVqrNhlBcf
+# imiBiDMgwn5aqLTkspaC/ANJWPPboMEb1kOADD2gs5HMG+73UwQMsSXOuqKUtuUp
+# dTgZffEAx/WdEjwZBEBkLZF0c4FHch0EZ7+2EnO6Zz1iIT4VTPxDovVhoU506M8W
+# 6MDHF2RxdKdgz1Q5l6xWVjwl
 # SIG # End signature block

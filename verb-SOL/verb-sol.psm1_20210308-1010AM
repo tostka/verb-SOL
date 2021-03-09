@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-SOL - Skype-Online-related functions
 .NOTES
-Version     : 1.0.14.0
+Version     : 1.0.13.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -222,13 +222,11 @@ Function Connect-SOL {
             } ;
             
             Add-PSTitleBar $sTitleBarTag ;
-            <# borked by psreadline v1/v2 breaking changes
             if(($PSFgColor = (Get-Variable  -name "$($TenOrg)Meta").value.PSFgColor) -AND ($PSBgColor = (Get-Variable  -name "$($TenOrg)Meta").value.PSBgColor)){
                 write-verbose "(setting console colors:$($TenOrg)Meta.PSFgColor:$($PSFgColor),PSBgColor:$($PSBgColor))" ; 
                 $Host.UI.RawUI.BackgroundColor = $PSBgColor
                 $Host.UI.RawUI.ForegroundColor = $PSFgColor ; 
             } ;
-            #>
             $Exit = $Retries ;
         } Catch {
             # capture auth errors - nope, they never get here, if use throw, it doesn't pass in the auth $error, gens a new one.
@@ -429,8 +427,8 @@ Export-ModuleMember -Function Connect-SOL,csolcmw,csoltol,csoltor,csolVEN,Discon
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUxZ1OydYzWzqQRMIFma6r43iM
-# mS2gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUz+jW183Wf3xEMTczZD8OEivl
+# N/KgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -445,9 +443,9 @@ Export-ModuleMember -Function Connect-SOL,csolcmw,csoltol,csoltor,csolVEN,Discon
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBR9mq0e
-# vN/5/c2FDH8SuoYBshQYuDANBgkqhkiG9w0BAQEFAASBgE0ExZnU/HbGgGGeZ3fu
-# ABnFHjpHffIW6Dv4CgTGFM8F0c/WJV53uwLUCRELlHiM3jVn9OhwxQm/NSG9LBxa
-# ALV2mW78fYAixNLzBuWB+HjDZhZoi9sWZcYFgku/c6DhqvnGO1TAEf7svSZwoLs8
-# L5F1plFKdDltniCFGLnV4N54
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQsLF5m
+# zvTpQBeIwd8XOBLwz3EK0TANBgkqhkiG9w0BAQEFAASBgHAOF9qfjiqL/V/MD3qp
+# naUg3OWwTHWzRiHtIMVAOIFxqv6S5IS1t7KqyPMx8ZJSB4pVjhOLrcgWXFJC+ZJW
+# /oQn4A531y5lduxwcvfVYwxplHYY9lkkdHrhaiSy0rlfssHdylbZZHuqcsrTwYwt
+# N5/9P02tUs9RWW5zjMVPBbRQ
 # SIG # End signature block

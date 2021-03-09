@@ -68,7 +68,7 @@ Function Connect-SOL {
     } else {
         $spltSOLsess.Add("UserName",$Credential.username);
     } ;
-
+    write-verbose "(using cred:$($credential.username))" ; 
     # set color scheme to White text on Black
     #$HOST.UI.RawUI.BackgroundColor = "Black" ; $HOST.UI.RawUI.ForegroundColor = "White" ;
     # $OverrideAdminDomain = $TORMeta['o365_TenantDomain'] ; 
@@ -179,10 +179,13 @@ Function Connect-SOL {
             } ;
             
             Add-PSTitleBar $sTitleBarTag ;
+            <# borked by psreadline v1/v2 breaking changes
             if(($PSFgColor = (Get-Variable  -name "$($TenOrg)Meta").value.PSFgColor) -AND ($PSBgColor = (Get-Variable  -name "$($TenOrg)Meta").value.PSBgColor)){
+                write-verbose "(setting console colors:$($TenOrg)Meta.PSFgColor:$($PSFgColor),PSBgColor:$($PSBgColor))" ; 
                 $Host.UI.RawUI.BackgroundColor = $PSBgColor
                 $Host.UI.RawUI.ForegroundColor = $PSFgColor ; 
             } ;
+            #>
             $Exit = $Retries ;
         } Catch {
             # capture auth errors - nope, they never get here, if use throw, it doesn't pass in the auth $error, gens a new one.
