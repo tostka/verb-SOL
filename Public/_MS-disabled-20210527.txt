@@ -1,0 +1,21 @@
+* 3:38 PM 7/27/2021 MS scrapped SOL module, subsummed into MicrosoftTeams mod:
+noticed SOL connects bouncing 3:26 PM 7/27/2021: 
+05/17/2021 : Teams PowerShell Module provides a complete set of cmdlets for managing Teams directly from the PowerShell command line. Administrators do not require Skype For Business Online Connector for their Teams administration."
+Teams administrator were notified through Message center post (MC244740, dated March 16, 2021; MC250940, dated April 16 2021) about this change.
+Teams PowerShell Module uses modern authentication, but the underlying Windows Remote Management (WinRM) client must be configured to allow Basic authentication. See Download and install Windows PowerShell for instructions on how to enable WinRM for Basic authentication.
+Warning
+Skype for Business Online Connector connections will be rejected starting May 17, 2021. Please contact Microsoft Support for help and support for migrating to Teams PowerShell Module.
+Migrate:
+	1. Install latest MSTeams mod: https://docs.microsoft.com/en-us/microsoftteams/teams-powershell-install
+	Install-Module -Name MicrosoftTeams -Force -AllowClobber -scope currentuser ; 
+	# or update
+	update-module -name microsoftteams 
+	2. Uninstall SOL
+		a. Was binary install, binary uninstall
+		b. SID PS, start explorer > search skype: Skype for Business Online, Windows PowerShell Module
+		
+	3. Script chgs:
+		a. chg  Import-Module from
+	SkypeOnlineConnector | LyncOnlineConnector ->  MicrosoftTeams
+		a. Replace New-CsOnlineSession -> Connect-MicrosoftTeams.
+		b. Import-PsSession is no longer required to establish a Skype for Business Online Remote PowerShell Session as that is done implicit when using Connect-MicrosoftTeams.
