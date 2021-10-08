@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-SOL - Skype-Online-related functions
 .NOTES
-Version     : 1.0.14.0
+Version     : 1.0.15.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -53,6 +53,7 @@ Function Connect-SOL {
     Based on 'overlapping functions' concept by: ExactMike Perficient, Global Knowl... (Partner)
     Website:	https://social.technet.microsoft.com/Forums/msonline/en-US/f3292898-9b8c-482a-86f0-3caccc0bd3e5/exchange-powershell-monitoring-remote-sessions?forum=onlineservicesexchange
     REVISIONS   :
+    * 2:58 PM 7/27/2021 pstitlebar updates
     * 2:44 PM 3/2/2021 added console TenOrg color support
     * 8:09 AM 10/16/2020 updated $Cred to Meta lookup to cover Down-Level Logon Name's
     * 7:13 AM 7/22/2020 replaced codeblock w get-TenantTag(); rewrote SOL OverrideAdminDomain support, to dyn pull from infra settings ; fixed $MFA handling issues (flipped detect) ; replaced debug echos with verbose
@@ -82,7 +83,7 @@ Function Connect-SOL {
     .LINK
     https://social.technet.microsoft.com/Forums/msonline/en-US/f3292898-9b8c-482a-86f0-3caccc0bd3e5/exchange-powershell-monitoring-remote-sessions?forum=onlineservicesexchange
     *---^ END Comment-based Help  ^--- #>
-
+    [CmdletBinding()]
     Param(
         [Parameter(HelpMessage="Force domain autodiscovery to connect to SOL (necessary with Skype Hybrid on-prem)[-OverrideAdminDomain TENANT.onmicrosoft.com]")]
         [string]$OverrideAdminDomain,
@@ -98,12 +99,10 @@ Function Connect-SOL {
     # pulling the $MFA auto by splitting the credential and checking the o365_*_OPDomain & o365_$($credVariTag)_MFA global varis
     $MFA = get-TenantMFARequirement -Credential $Credential ;
 
-    $sTitleBarTag="SOL" ;
+    $sTitleBarTag=@("SOL") ;
     $TentantTag=get-TenantTag -Credential $Credential ; 
-    if($TentantTag -ne 'TOR'){
-        # explicitly leave this tenant (default) untagged
-        $sTitleBarTag += $TentantTag ;
-    } ; 
+    $sTitleBarTag += $TentantTag ;
+    
     
     $spltSOLsess=@{ } ;
     if(!$MFA){
@@ -117,6 +116,7 @@ Function Connect-SOL {
     # $OverrideAdminDomain = $TORMeta['o365_TenantDomain'] ; 
 
     $credDom = ($Credential.username.split("@"))[1] ;
+    <#
     if($credential.username){
         if($credential.username.contains('\')){$credDom = ($Credential.username.split("\"))[0] }
         elseif($credential.username.contains('@')){$credDom = ($Credential.username.split("@"))[1] }
@@ -129,6 +129,11 @@ Function Connect-SOL {
             $OverrideAdminDomain = $Meta.value.SOLOverrideAdminDomain ; 
             break ; 
         } ; 
+    } ; 
+    #>
+    # direct pull
+    if((Get-Variable  -name "$($TenOrg)Meta").value.SOLOverrideAdminDomain){
+        $OverrideAdminDomain = (Get-Variable  -name "$($TenOrg)Meta").value.SOLOverrideAdminDomain
     } ; 
 
     If ($OverrideAdminDomain) {
@@ -221,7 +226,7 @@ Function Connect-SOL {
                 } ;
             } ;
             
-            Add-PSTitleBar $sTitleBarTag ;
+            Add-PSTitleBar $sTitleBarTag -verbose:$($VerbosePreference -eq "Continue")  ;
             <# borked by psreadline v1/v2 breaking changes
             if(($PSFgColor = (Get-Variable  -name "$($TenOrg)Meta").value.PSFgColor) -AND ($PSBgColor = (Get-Variable  -name "$($TenOrg)Meta").value.PSBgColor)){
                 write-verbose "(setting console colors:$($TenOrg)Meta.PSFgColor:$($PSFgColor),PSBgColor:$($PSBgColor))" ; 
@@ -276,6 +281,7 @@ Function Disconnect-SOL {
     Based on original function Author:  ExactMike Perficient, Global Knowl... (Partner)
     Website:	https://social.technet.microsoft.com/Forums/msonline/en-US/f3292898-9b8c-482a-86f0-3caccc0bd3e5/exchange-powershell-monitoring-remote-sessions?forum=onlineservicesexchange
     REVISIONS   :
+    * 2:56 PM 7/27/2021 updated pstitletag, rem'd console color reset
     * 2:44 PM 3/2/2021 added console TenOrg color support
     # 10:25 AM 6/20/2019 switched to common $rgxSOLPsHostName
     # 8:47 AM 6/2/2017 cleaned up deadwood, simplified pshelp
@@ -297,14 +303,16 @@ Function Disconnect-SOL {
     Disconnect-SOL;
     .LINK
     https://social.technet.microsoft.com/Forums/msonline/en-US/f3292898-9b8c-482a-86f0-3caccc0bd3e5/exchange-powershell-monitoring-remote-sessions?forum=onlineservicesexchange
-    *---^ END Comment-based Help  ^--- #>
-    # 9:25 AM 3/21/2017 getting undefined on the below, pretest them
+    #>
+    [CmdletBinding()]
+    [Alias('dxo')]
+    Param() 
     $verbose = ($VerbosePreference -eq "Continue") ; 
     if($Global:SOLModule){$Global:SOLModule | Remove-Module -Force ; } ;
     if($Global:SOLSession){$Global:SOLSession | Remove-PSSession ; } ;
     Get-PSSession|Where-Object{$_.ComputerName -match $rgxSOLPsHostName} | Remove-PSSession ;
-    Remove-PSTitlebar 'SOL' ;
-    [console]::ResetColor()  # reset console colorscheme
+    Remove-PSTitlebar 'SOL' -verbose:$($VerbosePreference -eq "Continue");;
+    #[console]::ResetColor()  # reset console colorscheme
 }
 
 #*------^ Disconnect-SOL.ps1 ^------
@@ -429,8 +437,8 @@ Export-ModuleMember -Function Connect-SOL,csolcmw,csoltol,csoltor,csolVEN,Discon
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUxZ1OydYzWzqQRMIFma6r43iM
-# mS2gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUbHFKGir+RRuCxf8Fm0wVfN/d
+# BL6gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -445,9 +453,9 @@ Export-ModuleMember -Function Connect-SOL,csolcmw,csoltol,csoltor,csolVEN,Discon
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBR9mq0e
-# vN/5/c2FDH8SuoYBshQYuDANBgkqhkiG9w0BAQEFAASBgE0ExZnU/HbGgGGeZ3fu
-# ABnFHjpHffIW6Dv4CgTGFM8F0c/WJV53uwLUCRELlHiM3jVn9OhwxQm/NSG9LBxa
-# ALV2mW78fYAixNLzBuWB+HjDZhZoi9sWZcYFgku/c6DhqvnGO1TAEf7svSZwoLs8
-# L5F1plFKdDltniCFGLnV4N54
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBT3/cK4
+# s+KN7dBhBaDqQ9LSYXv0IDANBgkqhkiG9w0BAQEFAASBgFejZ4wLE965jxJdgicy
+# zbWy2p28KiI7kI46zDrptIqUOGk1SVLwmu/vHBE1wXm4bNA6OarwGRpL8kk6bbTq
+# Nw6rji8h/7CSCcHOmRp9WD7gJQsmY+OhbMRo6scyai2spDLfQUhJEQsJMXYt6wTL
+# 3hXIbIc2omMhN7D1N8Lsdo46
 # SIG # End signature block
