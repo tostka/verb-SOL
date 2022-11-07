@@ -1,4 +1,4 @@
-#*------v Reconnect-SOL.ps1 v------
+﻿#*------v Reconnect-SOL.ps1 v------
 Function Reconnect-SOL {
     <#
     .SYNOPSIS

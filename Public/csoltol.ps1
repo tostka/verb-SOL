@@ -1,1 +1,1 @@
-function csoltol {Connect-SOL -cred $credO365TOLSID}
+﻿function csoltol {Connect-SOL -cred $credO365TOLSID}

@@ -1,1 +1,1 @@
-function rsoltol {Reconnect-SOL -cred $credO365TOLSID}
+﻿function rsoltol {Reconnect-SOL -cred $credO365TOLSID}

@@ -1,1 +1,1 @@
-function csoltor {Connect-SOL -cred $credO365TORSID}
+﻿function csoltor {Connect-SOL -cred $credO365TORSID}

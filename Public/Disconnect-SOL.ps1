@@ -1,4 +1,4 @@
-#*------v Disconnect-SOL.ps1 v------
+﻿#*------v Disconnect-SOL.ps1 v------
 Function Disconnect-SOL {
     <#
     .SYNOPSIS

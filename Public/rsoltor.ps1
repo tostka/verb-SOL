@@ -1,1 +1,1 @@
-function rsoltor {Reconnect-SOL -cred $credO365TORSID}
+﻿function rsoltor {Reconnect-SOL -cred $credO365TORSID}

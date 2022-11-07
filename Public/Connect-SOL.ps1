@@ -1,4 +1,4 @@
-#*------v Connect-SOL.ps1 v------
+﻿#*------v Connect-SOL.ps1 v------
 Function Connect-SOL {
     <#
     .SYNOPSIS
