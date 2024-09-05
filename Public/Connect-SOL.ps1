@@ -10,6 +10,7 @@ Function Connect-SOL {
     Based on 'overlapping functions' concept by: ExactMike Perficient, Global Knowl... (Partner)
     Website:	https://social.technet.microsoft.com/Forums/msonline/en-US/f3292898-9b8c-482a-86f0-3caccc0bd3e5/exchange-powershell-monitoring-remote-sessions?forum=onlineservicesexchange
     REVISIONS   :
+    * 1:30 PM 9/5/2024 added  update-SecurityProtocolTDO() SB to begin
     * 2:58 PM 7/27/2021 pstitlebar updates
     * 2:44 PM 3/2/2021 added console TenOrg color support
     * 8:09 AM 10/16/2020 updated $Cred to Meta lookup to cover Down-Level Logon Name's
@@ -49,6 +50,23 @@ Function Connect-SOL {
         [Parameter(HelpMessage="Credential to use for this connection [-credential 'ADMINUPN@DOMAIN.COM']")]
         [System.Management.Automation.PSCredential]$Credential = $credO365TORSID
     ) ;
+	$Verbose = ($VerbosePreference -eq 'Continue')
+	$CurrentVersionTlsLabel = [Net.ServicePointManager]::SecurityProtocol ; # Tls, Tls11, Tls12 ('Tls' == TLS1.0)  ;
+	write-verbose "PRE: `$CurrentVersionTlsLabel : $($CurrentVersionTlsLabel )" ;
+	# psv6+ already covers, test via the SslProtocol parameter presense
+	if ('SslProtocol' -notin (Get-Command Invoke-RestMethod).Parameters.Keys) {
+		$currentMaxTlsValue = [Math]::Max([Net.ServicePointManager]::SecurityProtocol.value__,[Net.SecurityProtocolType]::Tls.value__) ;
+		write-verbose "`$currentMaxTlsValue : $($currentMaxTlsValue )" ;
+		$newerTlsTypeEnums = [enum]::GetValues('Net.SecurityProtocolType') | Where-Object { $_ -gt $currentMaxTlsValue }
+		if($newerTlsTypeEnums){
+			write-verbose "Appending upgraded/missing TLS `$enums:`n$(($newerTlsTypeEnums -join ','|out-string).trim())" ;
+		} else {
+			write-verbose "Current TLS `$enums are up to date with max rev available on this machine" ;
+		};
+		$newerTlsTypeEnums | ForEach-Object {
+			[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor $_
+		} ;
+	} ;
     $verbose = ($VerbosePreference -eq "Continue") ; 
     # disable prefix spec, unless actually blanked (e.g. centrally spec'd in profile).
     if(!$CommandPrefix){ $CommandPrefix='SOL' ; } ;
